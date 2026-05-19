@@ -1,0 +1,14 @@
+label
+Chilled_Water_Return_Temperature_Sensor
+Discharge_Air_Temperature_Sensor
+Return_Air_Temperature_Sensor
+Zone_Air_Temperature_Sensor
+Mixed_Air_Temperature_Sensor
+Outside_Air_Temperature_Sensor
+Supply_Air_Flow_Sensor
+Supply_Air_Static_Pressure_Sensor
+Cooling_Command
+Heating_Command
+Fan_Status
+Damper_Position_Command
+

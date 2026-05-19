@@ -1,0 +1,7 @@
+streamlit==1.55.0
+pandas==2.3.3
+openai==2.29.0
+sentence-transformers==5.3.0
+llama-index==0.14.18
+llama-index-embeddings-huggingface==0.7.0
+
