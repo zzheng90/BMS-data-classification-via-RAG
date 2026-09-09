@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: bms-rag
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - service.yaml
+  - deployment.yaml
+
+# The deploy pipeline patches the image with:
+#   kustomize edit set image bms-rag=<ECR_URL>:<git-sha>
+images:
+  - name: bms-rag
+    newName: bms-rag
+    newTag: dev
+
+labels:
+  - pairs:
+      managed-by: kustomize
+    includeSelectors: false

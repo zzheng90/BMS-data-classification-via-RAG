@@ -1,0 +1,7 @@
+# Terraform working files — never commit state (may contain secrets) or plugins.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+# Keep .terraform.lock.hcl committed for reproducible provider versions.

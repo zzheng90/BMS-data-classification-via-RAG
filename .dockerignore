@@ -1,0 +1,32 @@
+# Keep the build context small and secrets out of the image.
+.git
+.gitignore
+.github
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.DS_Store
+
+# Local secrets / private data / generated indexes
+.env
+*.env
+!.env.example
+RAG_Data
+storage
+Alpha
+B3
+Bldg59
+EBU3B
+IntenCity
+Soda
+
+# Infra + docs are not needed inside the app image
+infra
+k8s
+DEPLOYMENT.md
+plans

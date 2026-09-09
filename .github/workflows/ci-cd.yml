@@ -1,0 +1,113 @@
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install lint tooling
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check . || true   # advisory for now; tighten later
+
+      - name: Byte-compile the app
+        run: python -m py_compile bms_rag_demo_app.py
+
+  # ---------------------------------------------------------------------------
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_ref: ${{ steps.meta.outputs.image_ref }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: meta
+        run: |
+          IMAGE_LC=$(echo "${IMAGE}" | tr '[:upper:]' '[:lower:]')
+          echo "image_lc=${IMAGE_LC}" >> "$GITHUB_OUTPUT"
+          echo "image_ref=${IMAGE_LC}:sha-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image_lc }}:sha-${{ github.sha }}
+            ${{ steps.meta.outputs.image_lc }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to k3s on EC2 over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: GITHUB_SHA
+          script: |
+            set -euo pipefail
+            IMAGE_LC=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            APP_DIR=/opt/bms-rag
+            sudo mkdir -p "$APP_DIR"
+            sudo chown "$USER" "$APP_DIR"
+            cd "$APP_DIR"
+            if [ -d repo/.git ]; then
+              git -C repo fetch --depth 1 origin "$GITHUB_SHA" && git -C repo checkout -f "$GITHUB_SHA"
+            else
+              git clone --depth 1 https://github.com/${{ github.repository }} repo
+              git -C repo checkout -f "$GITHUB_SHA"
+            fi
+            cd repo/k8s
+            kubectl create namespace bms-rag --dry-run=client -o yaml | kubectl apply -f -
+            kubectl -n bms-rag create secret generic bms-rag-secrets \
+              --from-literal=DASHSCOPE_API_KEY='${{ secrets.DASHSCOPE_API_KEY }}' \
+              --dry-run=client -o yaml | kubectl apply -f -
+            kubectl kustomize . | sed "s#image: bms-rag:dev#image: ${IMAGE_LC}:sha-${GITHUB_SHA}#" | kubectl apply -f -
+            kubectl -n bms-rag set image deployment/bms-rag bms-rag="${IMAGE_LC}:sha-${GITHUB_SHA}"
+            kubectl -n bms-rag rollout status deployment/bms-rag --timeout=300s
