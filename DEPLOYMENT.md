@@ -2,6 +2,21 @@
 
 从「本地改代码」到「自动部署到 AWS 上的 Kubernetes」的完整流水线。按阶段推进，每一步都能独立验证。
 
+## ✅ 当前部署状态（2026-09-10 已跑通）
+
+| 项 | 值 |
+|---|---|
+| 应用地址 | **http://3.65.177.199/** |
+| AWS 区域 / 实例 | eu-central-1 / t3.small (`i-04ac99e30532563e7`) |
+| 集群 | 单节点 k3s v1.36 |
+| 镜像仓库 | `ghcr.io/zzheng90/bms-data-classification-via-rag`（public） |
+| 触发方式 | push 到 `main` → 自动 test → build → deploy（约 1-8 分钟） |
+| Security Group | `sg-02dc854028f0239fa`（22 + 80 开放） |
+
+**日常使用**：改 `bms_rag_demo_app.py` → `git add -A && git commit -m "..." && git push` → 刷新浏览器看到更新。
+
+**用完记得拆**（停止计费）：`cd infra && terraform destroy -var "my_ip=$(curl -s ifconfig.me)/32"`
+
 ```
 本地改代码 ─git push→ GitHub ─Actions→ 构建镜像 → 推送 GHCR
                                               │
