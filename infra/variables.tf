@@ -15,10 +15,10 @@ variable "my_ip" {
   type        = string
 }
 
-variable "app_nodeport" {
-  description = "NodePort the Service is pinned to (see k8s/service.yaml)"
+variable "app_port" {
+  description = "Host port the app is served on (k3s ServiceLB binds this on the node)"
   type        = number
-  default     = 30080
+  default     = 80
 }
 
 variable "ssh_public_key_path" {

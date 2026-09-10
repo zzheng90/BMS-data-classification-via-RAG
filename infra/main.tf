@@ -33,9 +33,9 @@ resource "aws_security_group" "node" {
   }
 
   ingress {
-    description = "BMS-RAG app (Streamlit via NodePort)"
-    from_port   = var.app_nodeport
-    to_port     = var.app_nodeport
+    description = "BMS-RAG app (HTTP)"
+    from_port   = var.app_port
+    to_port     = var.app_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -65,4 +65,11 @@ resource "aws_instance" "node" {
   }
 
   tags = { Name = "${var.project}-node", Project = var.project }
+
+  lifecycle {
+    # AWS publishes new AL2023 AMIs often; don't recreate the node (and lose
+    # the running k3s + its IP) just because a newer AMI appeared. Delete this
+    # instance explicitly if you want to move to a fresh AMI.
+    ignore_changes = [ami]
+  }
 }

@@ -6,12 +6,13 @@ metadata:
   labels:
     app: bms-rag
 spec:
-  type: NodePort
+  # LoadBalancer -> on k3s the built-in ServiceLB (klipper) binds port 80 on
+  # the node's host network, so the app is reachable at http://<node-ip>/
+  # (port 80, which restrictive networks allow — unlike a 30000+ NodePort).
+  type: LoadBalancer
   selector:
     app: bms-rag
   ports:
     - name: http
       port: 80
       targetPort: http
-      # Fixed NodePort so the AWS security group / URL is stable.
-      nodePort: 30080

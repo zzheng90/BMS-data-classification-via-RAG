@@ -10,7 +10,7 @@ output "ssh" {
 
 output "app_url" {
   description = "Open the app here once the deploy pipeline has run"
-  value       = "http://${aws_instance.node.public_ip}:${var.app_nodeport}"
+  value       = "http://${aws_instance.node.public_ip}"
 }
 
 output "github_secrets" {
