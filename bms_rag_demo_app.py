@@ -619,7 +619,7 @@ def render_hits(title: str, hits: list[dict[str, Any]], show_label: bool = True)
 
 def main() -> None:
     st.set_page_config(page_title="BMS-RAG Tool Demo", layout="wide")
-    st.title("BMS-RAG Tool Demo — deployed via CI/CD 🚀")
+    st.title("BMS-RAG Tool Demo — deployed by Zhiyu via CI/CD 🚀")
     st.caption(
         "To tag Building Management Systems point instances "
         "with Brick label"
