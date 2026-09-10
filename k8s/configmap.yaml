@@ -10,5 +10,5 @@ data:
   BMS_RAG_RERANKER_MODEL: "cross-encoder/ms-marco-MiniLM-L-6-v2"
   BMS_RAG_DATA_DIR: "sample_data"
   BMS_RAG_STORAGE_DIR: "/tmp/storage"
-  DASHSCOPE_BASE_URL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+  DASHSCOPE_BASE_URL: "https://llm-f09ekvv7w0ioviiw.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
   DASHSCOPE_MODEL: "qwen-plus"

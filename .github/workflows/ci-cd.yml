@@ -92,22 +92,29 @@ jobs:
           envs: GITHUB_SHA
           script: |
             set -euo pipefail
-            IMAGE_LC=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            REPO="${{ github.repository }}"
+            IMAGE_LC="ghcr.io/$(echo "$REPO" | tr '[:upper:]' '[:lower:]')"
+            IMAGE="${IMAGE_LC}:sha-${GITHUB_SHA}"
             APP_DIR=/opt/bms-rag
+
             sudo mkdir -p "$APP_DIR"
-            sudo chown "$USER" "$APP_DIR"
+            sudo chown "$(id -un)" "$APP_DIR"
             cd "$APP_DIR"
-            if [ -d repo/.git ]; then
-              git -C repo fetch --depth 1 origin "$GITHUB_SHA" && git -C repo checkout -f "$GITHUB_SHA"
-            else
-              git clone --depth 1 https://github.com/${{ github.repository }} repo
-              git -C repo checkout -f "$GITHUB_SHA"
+            if [ ! -d repo/.git ]; then
+              git clone "https://github.com/${REPO}" repo
             fi
+            git -C repo fetch --depth 1 origin "$GITHUB_SHA"
+            git -C repo checkout -f "$GITHUB_SHA"
+
             cd repo/k8s
             kubectl create namespace bms-rag --dry-run=client -o yaml | kubectl apply -f -
             kubectl -n bms-rag create secret generic bms-rag-secrets \
               --from-literal=DASHSCOPE_API_KEY='${{ secrets.DASHSCOPE_API_KEY }}' \
               --dry-run=client -o yaml | kubectl apply -f -
-            kubectl kustomize . | sed "s#image: bms-rag:dev#image: ${IMAGE_LC}:sha-${GITHUB_SHA}#" | kubectl apply -f -
-            kubectl -n bms-rag set image deployment/bms-rag bms-rag="${IMAGE_LC}:sha-${GITHUB_SHA}"
-            kubectl -n bms-rag rollout status deployment/bms-rag --timeout=300s
+            kubectl kustomize . | sed "s#image: bms-rag:dev#image: ${IMAGE}#" | kubectl apply -f -
+            kubectl -n bms-rag set image deployment/bms-rag "bms-rag=${IMAGE}"
+            kubectl -n bms-rag rollout status deployment/bms-rag --timeout=360s
+
+            echo "--- smoke test ---"
+            curl -fsS --retry 5 --retry-delay 3 --retry-all-errors http://localhost/_stcore/health
+            echo "OK: http://${{ secrets.EC2_HOST }}/"

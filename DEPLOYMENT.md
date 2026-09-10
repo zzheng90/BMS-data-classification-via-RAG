@@ -9,7 +9,7 @@
                                               │
                               k3s: kubectl apply / set image
                                               │
-                     http://<EC2 公网 IP>:30080  ← 浏览器看到更新
+                     http://<EC2 公网 IP>/  ← 浏览器看到更新
 ```
 
 ---
@@ -25,7 +25,7 @@
 | `k8s/configmap.yaml` | Kubernetes | 非机密配置（模型名、DashScope endpoint 等） |
 | `k8s/secret.example.yaml` | Kubernetes | `DASHSCOPE_API_KEY` 的模板（真实值不进 git） |
 | `k8s/deployment.yaml` | Kubernetes | Pod 规格、资源限制、健康探针、滚动更新策略 |
-| `k8s/service.yaml` | Kubernetes | NodePort 30080，把 Pod 暴露到节点端口 |
+| `k8s/service.yaml` | Kubernetes | LoadBalancer（k3s ServiceLB 绑节点 80 端口） |
 | `k8s/kustomization.yaml` | Kubernetes | 聚合上面清单；CD 时用它替换镜像 tag |
 | `.github/workflows/ci-cd.yml` | GitHub Actions | test → build-and-push → deploy 三个 job |
 | `infra/*.tf` | AWS / IaC | Terraform：EC2 + 安全组 + 密钥对，一条命令建/拆 |
@@ -161,7 +161,7 @@ Settings → Secrets and variables → Actions：
 git add -A && git commit -m "Bump title to v2" && git push
 ```
 - GitHub Actions：`test` → `build-and-push` → `deploy` 全绿
-- 浏览器打开 `http://<public_ip>:30080`，标题变成 v2 ✅
+- 浏览器打开 `http://<public_ip>/`，标题变成 v2 ✅
 - 服务器上 `kubectl -n bms-rag rollout status deploy/bms-rag` 显示新版本
 
 ---

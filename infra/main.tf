@@ -25,11 +25,11 @@ resource "aws_security_group" "node" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
-    description = "SSH"
+    description = "SSH (key-only auth)"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip]
+    cidr_blocks = [var.ssh_cidr]
   }
 
   ingress {

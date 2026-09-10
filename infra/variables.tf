@@ -11,8 +11,17 @@ variable "instance_type" {
 }
 
 variable "my_ip" {
-  description = "Your public IP in CIDR form (e.g. 1.2.3.4/32) — used to lock down SSH. Find it with: curl ifconfig.me"
+  description = "Your public IP in CIDR form (e.g. 1.2.3.4/32). Kept for reference / tightening later."
   type        = string
+}
+
+variable "ssh_cidr" {
+  # Default is open because GitHub Actions runners have dynamic IPs and the
+  # deploy job SSHes in. Auth is key-only (no passwords) and the box is
+  # short-lived. Set to var.my_ip once you move deploy to SSM / self-hosted runner.
+  description = "CIDR allowed to SSH in"
+  type        = string
+  default     = "0.0.0.0/0"
 }
 
 variable "app_port" {
