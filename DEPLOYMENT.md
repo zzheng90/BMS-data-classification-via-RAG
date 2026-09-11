@@ -6,7 +6,7 @@
 
 | 项 | 值 |
 |---|---|
-| 应用地址 | **http://3.65.177.199/** |
+| 应用地址 | **http://63.177.255.121/** |
 | AWS 区域 / 实例 | eu-central-1 / t3.small (`i-04ac99e30532563e7`) |
 | 集群 | 单节点 k3s v1.36 |
 | 镜像仓库 | `ghcr.io/zzheng90/bms-data-classification-via-rag`（public） |
