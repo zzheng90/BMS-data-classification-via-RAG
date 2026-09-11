@@ -9,8 +9,9 @@ resources:
   - service.yaml
   - deployment.yaml
 
-# The deploy pipeline patches the image with:
-#   kustomize edit set image bms-rag=<ECR_URL>:<git-sha>
+# The deploy pipeline patches the image tag via:
+#   kubectl kustomize . | sed "s#image: bms-rag:dev#image: <GHCR_URL>:sha-<git-sha>#"
+# (see .github/workflows/ci-cd.yml, deploy job)
 images:
   - name: bms-rag
     newName: bms-rag
